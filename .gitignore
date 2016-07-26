@@ -1,2 +1,5 @@
 # Ignore temp files
 *~
+# Ignore build directories
+javacs-lab12/bin/
+javacs-lab12/junit/
