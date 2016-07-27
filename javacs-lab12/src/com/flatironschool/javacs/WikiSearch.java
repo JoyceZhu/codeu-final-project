@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
 import redis.clients.jedis.Jedis;
 
 
@@ -172,5 +174,13 @@ public class WikiSearch {
 		System.out.println("Query: " + term1 + " AND " + term2);
 		WikiSearch intersection = search1.and(search2);
 		intersection.print();
+
+		// test out JOpt simple
+
+		OptionParser parser = new OptionParser( "a::" );
+		OptionSet options = parser.parse(args);
+		System.out.println(options.has("a"));
+		if (options.has("a"))
+			System.out.println("a: " + options.valueOf( "a" ));
 	}
 }
