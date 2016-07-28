@@ -178,9 +178,16 @@ public class WikiSearch {
 		// test out JOpt simple
 
 		OptionParser parser = new OptionParser( "a::" );
+		parser.accepts( "term" ).withOptionalArg();
+		parser.accepts("help");
 		OptionSet options = parser.parse(args);
-		System.out.println(options.has("a"));
+		//System.out.println(options.has("a"));
 		if (options.has("a"))
 			System.out.println("a: " + options.valueOf( "a" ));
+		if (options.has("term"))
+		{
+			System.out.println("Query: " + options.valueOf("term"));
+			search(options.valueOf("term").toString(), index).print();
+		}
 	}
 }
