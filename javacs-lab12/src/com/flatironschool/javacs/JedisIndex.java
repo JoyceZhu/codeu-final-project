@@ -302,9 +302,9 @@ public class JedisIndex {
 		Jedis jedis = JedisMaker.make();
 		JedisIndex index = new JedisIndex(jedis);
 		
-		//index.deleteTermCounters();
-		//index.deleteURLSets();
-		//index.deleteAllKeys();
+		index.deleteTermCounters();
+		index.deleteURLSets();
+		index.deleteAllKeys();
 		loadIndex(index);
 		
 		Map<String, Integer> map = index.getCountsFaster("the");
@@ -321,6 +321,21 @@ public class JedisIndex {
 	 */
 	private static void loadIndex(JedisIndex index) throws IOException {
 		WikiFetcher wf = new WikiFetcher();
+		// Elements paragraphs;
+
+		// String[] urls = {"Awareness", "Java_(Programming_Language)", "Programming_language", 
+		// 				 "Computer_science", "Knowledge", "Property_(philosophy)", 
+		// 				 "Concurrent_computing", "Mathematics", "Quality_(philosophy)", 
+		// 				 "Consciousness", "Modern_philosophy", "Science", "Philosophy"};
+		// String modified_url;
+
+		// for (String url: urls)
+		// {
+		// 	modified_url = "https://en.wikipedia.org/wiki/" + url;
+		// 	System.out.println("reading url " + modified_url);
+		// 	paragraphs = wf.readWikipedia(modified_url);
+		// 	index.indexPage(modified_url, paragraphs);
+		// }
 
 		String url = "https://en.wikipedia.org/wiki/Java_(programming_language)";
 		Elements paragraphs = wf.readWikipedia(url);

@@ -152,6 +152,33 @@ public class WikiSearch {
 		return new WikiSearch(map);
 	}
 
+	/**
+	 * Prints help on what command line options are available.
+	 * 
+	 */ 
+	public static void printHelpMessage()
+	{
+		System.out.println("WikiSearch: a Wikipedia web crawler and indexer");
+		System.out.println();
+		System.out.println("OPTIONS AVAILABLE:");
+
+		printOption("--help", "Display this help message.");
+		printOption("--term", "Search indexed pages for the indicated term.");
+	}
+
+	/**, 
+	 * Helper which prints formatted information on which options are available.
+	 * 
+	 */ 
+	public static void printOption(String option, String description)
+	{
+		System.out.println();
+		System.out.println(option);
+		System.out.println();
+		System.out.println(description);
+		System.out.println();
+	}
+
 	public static void main(String[] args) throws IOException {
 		
 		// make a JedisIndex
@@ -181,13 +208,16 @@ public class WikiSearch {
 		parser.accepts( "term" ).withOptionalArg();
 		parser.accepts("help");
 		OptionSet options = parser.parse(args);
-		//System.out.println(options.has("a"));
 		if (options.has("a"))
 			System.out.println("a: " + options.valueOf( "a" ));
 		if (options.has("term"))
 		{
 			System.out.println("Query: " + options.valueOf("term"));
 			search(options.valueOf("term").toString(), index).print();
+		}
+		if (options.has("help"))
+		{
+			printHelpMessage();
 		}
 	}
 }
