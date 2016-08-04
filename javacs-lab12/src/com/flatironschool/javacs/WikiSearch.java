@@ -94,6 +94,39 @@ public class WikiSearch {
         }
 		return new WikiSearch(temp);
 	}
+
+	/**
+	 * Given a list of comma-delimited terms, compute their intersection.
+	 * 
+	 * @param terms
+	 * @param index
+	 */
+	public static void handleChainedAnd(String terms, JedisIndex index)
+	{
+		WikiSearch currentResult;
+		// The -1 limit parameter instructs split to match as many times as possible.
+		String[] tokens = terms.split(",", -1);
+		if (tokens.length < 2)
+		{
+			System.out.println("Must provide at least 2 comma-delimited search terms.");
+			return;
+		}
+		System.out.print("Query: ");
+		currentResult = search(tokens[0], index);
+		System.out.print(tokens[0] + " AND ");
+		for (int i = 1; i < tokens.length; i++)
+		{
+			currentResult = currentResult.and(search(tokens[i], index));
+			System.out.print(tokens[i]);
+			// Maybe there's a magic Java join method like that of Python that would save me
+			// all this clumsy coding. Will look for it...sometime
+			if (i != tokens.length - 1)
+				System.out.print(" AND ");
+		}
+		System.out.println();
+
+		currentResult.print();
+	}
 	
 	/**
 	 * Computes the intersection of two search results.
@@ -164,6 +197,12 @@ public class WikiSearch {
 
 		printOption("--help", "Display this help message.");
 		printOption("--term", "Search indexed pages for the indicated term.");
+		printOption("-n", "Display only the top N results.");
+		printOption("-c", "Display only the number of documents which contain the specified term.");
+		printOption("--and", "Lorem ipsum");
+		printOption("--or", "Lorem ipsum");
+		printOption("--without", "Lorem ipsum");
+		printOption("--verbose", "Lorem ipsum");
 	}
 
 	/**, 
@@ -205,19 +244,25 @@ public class WikiSearch {
 		// test out JOpt simple
 
 		OptionParser parser = new OptionParser( "a::" );
-		parser.accepts( "term" ).withOptionalArg();
+		parser.accepts("term").withOptionalArg();
+		parser.accepts("and").withOptionalArg();
+		parser.accepts("or").withOptionalArg();
+		parser.accepts("without").withOptionalArg();
 		parser.accepts("help");
 		OptionSet options = parser.parse(args);
-		if (options.has("a"))
-			System.out.println("a: " + options.valueOf( "a" ));
-		if (options.has("term"))
-		{
-			System.out.println("Query: " + options.valueOf("term"));
-			search(options.valueOf("term").toString(), index).print();
-		}
 		if (options.has("help"))
 		{
 			printHelpMessage();
+			System.exit(0);
+		}
+		if (options.has("a"))
+			System.out.println("a: " + options.valueOf( "a" ));
+		if (options.has("and") && options.valueOf("and") != null)
+			handleChainedAnd(options.valueOf("and").toString(), index);
+		if (options.has("term") && options.valueOf("term") != null)
+		{
+			System.out.println("Query: " + options.valueOf("term"));
+			search(options.valueOf("term").toString(), index).print();
 		}
 	}
 }
