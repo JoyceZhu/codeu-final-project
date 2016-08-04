@@ -1,6 +1,6 @@
-Joyce Zhu, Ashley Daguanno, and Iman Zakeri CodeU final project
+Joyce Zhu CodeU final project
 
-Initial code is a clone of Joyce's solutions fork of the retrieval lab, https://github.com/learn-co-students/cs-application-retrieval-lab-codeU
+Initial code is a clone of my solutions fork of the retrieval lab, https://github.com/learn-co-students/cs-application-retrieval-lab-codeU
 
 Note to self: test using
 
