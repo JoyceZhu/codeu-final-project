@@ -19,22 +19,22 @@ import redis.clients.jedis.Jedis;
  *
  */
 public class WikiSearch {
-	
+
 	// map from URLs that contain the term(s) to relevance score
 	private Map<String, Integer> map;
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param map
 	 */
 	public WikiSearch(Map<String, Integer> map) {
 		this.map = map;
 	}
-	
+
 	/**
 	 * Looks up the relevance of a given URL.
-	 * 
+	 *
 	 * @param url
 	 * @return
 	 */
@@ -42,10 +42,10 @@ public class WikiSearch {
 		Integer relevance = map.get(url);
 		return relevance==null ? 0: relevance;
 	}
-	
+
 	/**
 	 * Prints the contents in order of term frequency.
-	 * 
+	 *
 	 * @param map
 	 */
 	private  void print() {
@@ -54,10 +54,10 @@ public class WikiSearch {
 			System.out.println(entry);
 		}
 	}
-	
+
 	/**
 	 * Computes the union of two search results.
-	 * 
+	 *
 	 * @param that
 	 * @return New WikiSearch object.
 	 */
@@ -66,21 +66,54 @@ public class WikiSearch {
         // Or: sum up relevances for terms in either set of keys
         for (String term: map.keySet())
         {
-            temp.put(term, this.getRelevance(term));           
+            temp.put(term, this.getRelevance(term));
         }
         for (String term: that.map.keySet())
         {
         	if (temp.containsKey(term))
         		temp.put(term, this.getRelevance(term) + that.getRelevance(term));
     		else // New term not in first Search object
-    			temp.put(term, that.getRelevance(term)); 
+    			temp.put(term, that.getRelevance(term));
         }
 		return new WikiSearch(temp);
 	}
-	
+
+	/**
+	 * Given a list of comma-delimited terms, compute their union.
+	 *
+	 * @param terms
+	 * @param index
+	 */
+	public static void handleChainedOr(String terms, JedisIndex index)
+	{
+		WikiSearch currentResult;
+		// The -1 limit parameter instructs split to match as many times as possible.
+		String[] tokens = terms.split(",", -1);
+		if (tokens.length < 2)
+		{
+			System.out.println("Must provide at least 2 comma-delimited search terms.");
+			return;
+		}
+		System.out.print("Query: ");
+		currentResult = search(tokens[0], index);
+		System.out.print(tokens[0] + " OR ");
+		for (int i = 1; i < tokens.length; i++)
+		{
+			currentResult = currentResult.or(search(tokens[i], index));
+			System.out.print(tokens[i]);
+			// Maybe there's a magic Java join method like that of Python that would save me
+			// all this clumsy coding. Will look for it...sometime
+			if (i != tokens.length - 1)
+				System.out.print(" OR ");
+		}
+		System.out.println();
+
+		currentResult.print();
+	}
+
 	/**
 	 * Computes the intersection of two search results.
-	 * 
+	 *
 	 * @param that
 	 * @return New WikiSearch object.
 	 */
@@ -97,7 +130,7 @@ public class WikiSearch {
 
 	/**
 	 * Given a list of comma-delimited terms, compute their intersection.
-	 * 
+	 *
 	 * @param terms
 	 * @param index
 	 */
@@ -127,10 +160,10 @@ public class WikiSearch {
 
 		currentResult.print();
 	}
-	
+
 	/**
-	 * Computes the intersection of two search results.
-	 * 
+	 * Computes the difference of two search results.
+	 *
 	 * @param that
 	 * @return New WikiSearch object.
 	 */
@@ -142,10 +175,43 @@ public class WikiSearch {
         		temp.put(term, this.getRelevance(term));
 		return new WikiSearch(temp);
 	}
-	
+
+	/**
+	 * Given a list of comma-delimited terms, compute their difference.
+	 *
+	 * @param terms
+	 * @param index
+	 */
+	public static void handleChainedWithout(String terms, JedisIndex index)
+	{
+		WikiSearch currentResult;
+		// The -1 limit parameter instructs split to match as many times as possible.
+		String[] tokens = terms.split(",", -1);
+		if (tokens.length < 2)
+		{
+			System.out.println("Must provide at least 2 comma-delimited search terms.");
+			return;
+		}
+		System.out.print("Query: ");
+		currentResult = search(tokens[0], index);
+		System.out.print(tokens[0] + " MINUS ");
+		for (int i = 1; i < tokens.length; i++)
+		{
+			currentResult = currentResult.minus(search(tokens[i], index));
+			System.out.print(tokens[i]);
+			// Maybe there's a magic Java join method like that of Python that would save me
+			// all this clumsy coding. Will look for it...sometime
+			if (i != tokens.length - 1)
+				System.out.print(" MINUS ");
+		}
+		System.out.println();
+
+		currentResult.print();
+	}
+
 	/**
 	 * Computes the relevance of a search with multiple terms.
-	 * 
+	 *
 	 * @param rel1: relevance score for the first search
 	 * @param rel2: relevance score for the second search
 	 * @return
@@ -157,14 +223,14 @@ public class WikiSearch {
 
 	/**
 	 * Sort the results by relevance.
-	 * 
+	 *
 	 * @return List of entries with URL and relevance.
 	 */
 	public List<Entry<String, Integer>> sort() {
         List<Entry<String, Integer>> temp = new LinkedList<Entry<String, Integer>>();
         for (Map.Entry<String, Integer> entry : map.entrySet())
 			temp.add(entry);
-		Comparator<Entry<String, Integer>> compareFunc = new Comparator<Entry<String, Integer>>(){		
+		Comparator<Entry<String, Integer>> compareFunc = new Comparator<Entry<String, Integer>>(){
 			public int compare(Entry<String, Integer> w1, Entry<String, Integer> w2) {
 				return (w1.getValue().compareTo(w2.getValue()));
 			}
@@ -175,7 +241,7 @@ public class WikiSearch {
 
 	/**
 	 * Performs a search and makes a WikiSearch object.
-	 * 
+	 *
 	 * @param term
 	 * @param index
 	 * @return
@@ -187,8 +253,8 @@ public class WikiSearch {
 
 	/**
 	 * Prints help on what command line options are available.
-	 * 
-	 */ 
+	 *
+	 */
 	public static void printHelpMessage()
 	{
 		System.out.println("WikiSearch: a Wikipedia web crawler and indexer");
@@ -199,16 +265,16 @@ public class WikiSearch {
 		printOption("--term", "Search indexed pages for the indicated term.");
 		printOption("-n", "Display only the top N results.");
 		printOption("-c", "Display only the number of documents which contain the specified term.");
-		printOption("--and", "Lorem ipsum");
-		printOption("--or", "Lorem ipsum");
-		printOption("--without", "Lorem ipsum");
+		printOption("--and", "Compute the intersection of a list of comma-delimited terms. Eg, to search for A && B && C, pass the argument \"A,B,C\".");
+		printOption("--or", "Compute the union of a list of comma-delimited terms. Eg, to search for A || B || C, pass the argument \"A,B,C\".");
+		printOption("--without", "Compute the difference of a list of comma-delimited terms. Eg, to search for A - B - C, which is grouped as (A - B) - C, pass the argument \"A,B,C\".");
 		printOption("--verbose", "Lorem ipsum");
 	}
 
-	/**, 
+	/**,
 	 * Helper which prints formatted information on which options are available.
-	 * 
-	 */ 
+	 *
+	 */
 	public static void printOption(String option, String description)
 	{
 		System.out.println();
@@ -219,29 +285,28 @@ public class WikiSearch {
 	}
 
 	public static void main(String[] args) throws IOException {
-		
+
 		// make a JedisIndex
 		Jedis jedis = JedisMaker.make();
-		JedisIndex index = new JedisIndex(jedis); 
-		
+		JedisIndex index = new JedisIndex(jedis);
+
 		// search for the first term
 		String term1 = "java";
 		System.out.println("Query: " + term1);
 		WikiSearch search1 = search(term1, index);
 		search1.print();
-		
+
 		// search for the second term
 		String term2 = "programming";
 		System.out.println("Query: " + term2);
 		WikiSearch search2 = search(term2, index);
 		search2.print();
-		
+
 		// compute the intersection of the searches
 		System.out.println("Query: " + term1 + " AND " + term2);
 		WikiSearch intersection = search1.and(search2);
 		intersection.print();
 
-		// test out JOpt simple
 
 		OptionParser parser = new OptionParser( "a::" );
 		parser.accepts("term").withOptionalArg();
@@ -259,6 +324,10 @@ public class WikiSearch {
 			System.out.println("a: " + options.valueOf( "a" ));
 		if (options.has("and") && options.valueOf("and") != null)
 			handleChainedAnd(options.valueOf("and").toString(), index);
+		if (options.has("or") && options.valueOf("or") != null)
+			handleChainedOr(options.valueOf("or").toString(), index);
+		if (options.has("without") && options.valueOf("without") != null)
+			handleChainedAnd(options.valueOf("without").toString(), index);
 		if (options.has("term") && options.valueOf("term") != null)
 		{
 			System.out.println("Query: " + options.valueOf("term"));
