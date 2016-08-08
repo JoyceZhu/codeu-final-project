@@ -48,10 +48,39 @@ public class WikiSearch {
 	 *
 	 * @param map
 	 */
-	private  void print() {
+	private void print() {
 		List<Entry<String, Integer>> entries = sort();
 		for (Entry<String, Integer> entry: entries) {
 			System.out.println(entry);
+		}
+	}
+
+	/**
+	 * Simply prints how many documents had the term indexed.
+	 *
+	 * @param term
+	 */
+	private void printNumDocs(String term) {
+		List<Entry<String, Integer>> entries = sort();
+		System.out.println(term + ": " + entries.size() + " documents");
+	}
+
+	/**
+	 * Only prints the top N results for the given term.
+	 * If there are fewer than N results, prints them all.
+	 *
+	 * @param limit
+	 * @param term
+	 */
+	private void printTopN(int limit, String term) {
+		List<Entry<String, Integer>> entries = sort();
+		System.out.println("Top " + limit + " results for term " + term + ":");
+		if (limit >= entries.size())
+			for (Entry<String, Integer> entry: entries)
+				System.out.println(entry);
+		else {
+			for (int i = 0; i < limit; i++)
+				System.out.println(entries.get(i));
 		}
 	}
 
@@ -308,7 +337,7 @@ public class WikiSearch {
 		intersection.print();
 
 
-		OptionParser parser = new OptionParser( "a::" );
+		OptionParser parser = new OptionParser( "a::n::c::" );
 		parser.accepts("term").withOptionalArg();
 		parser.accepts("and").withOptionalArg();
 		parser.accepts("or").withOptionalArg();
@@ -320,8 +349,49 @@ public class WikiSearch {
 			printHelpMessage();
 			System.exit(0);
 		}
-		if (options.has("a"))
-			System.out.println("a: " + options.valueOf( "a" ));
+		if (options.has("c"))
+		{
+			// We can't search for how many documents indexed a term unless a term is provided!
+			if (!options.has("term"))
+			{
+				System.out.println("Need to provide term to search for");
+				System.exit(1);
+			}
+			else
+			{
+				// We still need to compute the results of searching for the term, but instead of calling print(), we'll just report how many pages had the term indexed.
+				WikiSearch result = search(options.valueOf("term").toString(), index);
+				result.printNumDocs(options.valueOf("term").toString());
+			}
+		}
+		if (options.has("n"))
+		{
+			// We can't search for the top N results for a term unless a term is provided!
+			if (!options.has("term"))
+			{
+				System.out.println("Need to provide term to search for");
+				System.exit(1);
+			}
+			else
+			{
+				// We still need to compute the results of searching for the term, but have the limitation of reporting up to N maximum results.
+				try {
+					int limit = Integer.parseInt(options.valueOf("n").toString());
+					if (limit < 1)
+					{
+						System.out.println("Please provide a positive ( > 0) integer limit for how many results you want to see.");
+						System.exit(1);
+					}
+					WikiSearch result = search(options.valueOf("term").toString(), index);
+					result.printTopN(limit, options.valueOf("term").toString());
+				}
+				catch (NumberFormatException e) {
+					System.out.println("Please provide an integer limit for how many results you want to see.");
+					System.exit(1);
+				}
+			}
+		}
+
 		if (options.has("and") && options.valueOf("and") != null)
 			handleChainedAnd(options.valueOf("and").toString(), index);
 		if (options.has("or") && options.valueOf("or") != null)
