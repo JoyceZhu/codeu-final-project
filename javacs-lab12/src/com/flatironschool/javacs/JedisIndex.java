@@ -82,6 +82,19 @@ public class JedisIndex {
 	}
 
 	/**
+	 * Prints the set of URLs indexed.
+	 * 
+	 */
+	public void printURLs() {
+		System.out.println("List of indexed URLs:");
+		Set<String> urls = termCounterKeys();
+		for (String url: urls) {
+			// Strip off the "TermCounter:" at the start of each URL; nobody wants to see that!
+			System.out.println(url.replace("TermCounter:",""));
+		}
+	}
+
+	/**
 	 * Looks up a term and returns a map from URL to count.
 	 * 
 	 * @param term
@@ -342,6 +355,46 @@ public class JedisIndex {
 		index.indexPage(url, paragraphs);
 		
 		url = "https://en.wikipedia.org/wiki/Programming_language";
+		paragraphs = wf.readWikipedia(url);
+		index.indexPage(url, paragraphs);
+
+		url = "https://en.wikipedia.org/wiki/Awareness";
+		paragraphs = wf.readWikipedia(url);
+		index.indexPage(url, paragraphs);
+
+		url = "https://en.wikipedia.org/wiki/Computer_science";
+		paragraphs = wf.readWikipedia(url);
+		index.indexPage(url, paragraphs);
+
+		url = "https://en.wikipedia.org/wiki/Knowledge";
+		paragraphs = wf.readWikipedia(url);
+		index.indexPage(url, paragraphs);
+
+		url = "https://en.wikipedia.org/wiki/Property_(philosophy)";
+		paragraphs = wf.readWikipedia(url);
+		index.indexPage(url, paragraphs);
+
+		url = "https://en.wikipedia.org/wiki/Concurrent_computing";
+		paragraphs = wf.readWikipedia(url);
+		index.indexPage(url, paragraphs);
+
+		url = "https://en.wikipedia.org/wiki/Mathematics";
+		paragraphs = wf.readWikipedia(url);
+		index.indexPage(url, paragraphs);
+
+		url = "https://en.wikipedia.org/wiki/Quality_(philosophy)";
+		paragraphs = wf.readWikipedia(url);
+		index.indexPage(url, paragraphs);
+
+		url = "https://en.wikipedia.org/wiki/Modern_philosophy";
+		paragraphs = wf.readWikipedia(url);
+		index.indexPage(url, paragraphs);
+
+		url = "https://en.wikipedia.org/wiki/Science";
+		paragraphs = wf.readWikipedia(url);
+		index.indexPage(url, paragraphs);
+
+		url = "https://en.wikipedia.org/wiki/Philosophy";
 		paragraphs = wf.readWikipedia(url);
 		index.indexPage(url, paragraphs);
 	}

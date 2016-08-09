@@ -289,6 +289,7 @@ public class WikiSearch {
 		System.out.println("WikiSearch: a Wikipedia web crawler and indexer");
 		System.out.println();
 		System.out.println("OPTIONS AVAILABLE:");
+		System.out.println();
 
 		printOption("--help", "Display this help message.");
 		printOption("--term", "Search indexed pages for the indicated term.");
@@ -297,7 +298,7 @@ public class WikiSearch {
 		printOption("--and", "Compute the intersection of a list of comma-delimited terms. Eg, to search for A && B && C, pass the argument \"A,B,C\".");
 		printOption("--or", "Compute the union of a list of comma-delimited terms. Eg, to search for A || B || C, pass the argument \"A,B,C\".");
 		printOption("--without", "Compute the difference of a list of comma-delimited terms. Eg, to search for A - B - C, which is grouped as (A - B) - C, pass the argument \"A,B,C\".");
-		printOption("--verbose", "Lorem ipsum");
+		printOption("--list", "Lists the URLs available for search in the index.");
 	}
 
 	/**,
@@ -306,8 +307,7 @@ public class WikiSearch {
 	 */
 	public static void printOption(String option, String description)
 	{
-		System.out.println();
-		System.out.println(option);
+		System.out.println(option + ":");
 		System.out.println();
 		System.out.println(description);
 		System.out.println();
@@ -320,21 +320,21 @@ public class WikiSearch {
 		JedisIndex index = new JedisIndex(jedis);
 
 		// search for the first term
-		String term1 = "java";
-		System.out.println("Query: " + term1);
-		WikiSearch search1 = search(term1, index);
-		search1.print();
+		// String term1 = "java";
+		// System.out.println("Query: " + term1);
+		// WikiSearch search1 = search(term1, index);
+		// search1.print();
 
-		// search for the second term
-		String term2 = "programming";
-		System.out.println("Query: " + term2);
-		WikiSearch search2 = search(term2, index);
-		search2.print();
+		// // search for the second term
+		// String term2 = "programming";
+		// System.out.println("Query: " + term2);
+		// WikiSearch search2 = search(term2, index);
+		// search2.print();
 
-		// compute the intersection of the searches
-		System.out.println("Query: " + term1 + " AND " + term2);
-		WikiSearch intersection = search1.and(search2);
-		intersection.print();
+		// // compute the intersection of the searches
+		// System.out.println("Query: " + term1 + " AND " + term2);
+		// WikiSearch intersection = search1.and(search2);
+		// intersection.print();
 
 
 		OptionParser parser = new OptionParser( "a::n::c::" );
@@ -342,11 +342,17 @@ public class WikiSearch {
 		parser.accepts("and").withOptionalArg();
 		parser.accepts("or").withOptionalArg();
 		parser.accepts("without").withOptionalArg();
+		parser.accepts("list");
 		parser.accepts("help");
 		OptionSet options = parser.parse(args);
 		if (options.has("help"))
 		{
 			printHelpMessage();
+			System.exit(0);
+		}
+		if (options.has("list"))
+		{
+			index.printURLs();
 			System.exit(0);
 		}
 		if (options.has("c"))
